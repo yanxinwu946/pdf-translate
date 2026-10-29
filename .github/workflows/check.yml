@@ -1,0 +1,20 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: compile and selftest
+        run: |
+          python -m py_compile scripts/cli_openai_proxy.py scripts/selftest.py
+          python scripts/selftest.py
+      - name: bash syntax
+        run: bash -n install.sh scripts/setup.sh scripts/translate.sh
