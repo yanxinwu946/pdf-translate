@@ -1,0 +1,44 @@
+source,target,tgt_lng
+et al.,et al.,zh-CN
+et al,et al.,zh-CN
+e.g.,e.g.,zh-CN
+i.e.,i.e.,zh-CN
+cf.,cf.,zh-CN
+vs.,vs.,zh-CN
+Fig.,图,zh-CN
+Figure,图,zh-CN
+Table,表,zh-CN
+Appendix,附录,zh-CN
+Lemma,引理,zh-CN
+Theorem,定理,zh-CN
+Definition,定义,zh-CN
+Proposition,命题,zh-CN
+Corollary,推论,zh-CN
+Algorithm,算法,zh-CN
+Preprint,预印本,zh-CN
+Abstract,摘要,zh-CN
+References,参考文献,zh-CN
+Acknowledgement,致谢,zh-CN
+Acknowledgements,致谢,zh-CN
+Acknowledgments,致谢,zh-CN
+Introduction,引言,zh-CN
+Conclusion,结论,zh-CN
+Conclusions,结论,zh-CN
+Related Work,相关工作,zh-CN
+Background,背景,zh-CN
+Limitation,局限,zh-CN
+Limitations,局限,zh-CN
+Ablation,消融,zh-CN
+VLM,VLM,zh-CN
+VLMs,VLM,zh-CN
+LLM,LLM,zh-CN
+LLMs,LLM,zh-CN
+GUI,GUI,zh-CN
+OCR,OCR,zh-CN
+SOTA,SOTA,zh-CN
+API,API,zh-CN
+PDF,PDF,zh-CN
+URL,URL,zh-CN
+arXiv,arXiv,zh-CN
+GitHub,GitHub,zh-CN
+PyTorch,PyTorch,zh-CN
