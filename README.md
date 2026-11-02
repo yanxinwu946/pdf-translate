@@ -8,7 +8,7 @@
 
 ![pdf-translate 演示](./videos/github_video.gif)
 
-同一份技能，放进你常用的助手里。Codex、Claude Code、Grok 优先使用各自已经登录的命令行；其他助手通过自定义命令或你指定的网关接入。不会因为电脑装着别家的客户端，就悄悄切换模型或把论文交给免费中转。
+当前会话直接翻译，原排版引擎负责把译文放回论文。不另启模型命令行，不需要翻译 API，也不转交其他厂商。
 
 ---
 
@@ -35,9 +35,7 @@ npx skills add yanxinwu946/pdf-translate
 
 需要 [uv](https://docs.astral.sh/uv/)。第一次会把排版模型带下来，之后都是本地缓存。
 
-各家目录、手动拷贝、Windows 说明见 [`references/install.md`](references/install.md)。
-
-不同助手的翻译接入、可选代理和性能说明见 [`references/harnesses.md`](references/harnesses.md)。安装器保留已有的其他版本，不自动覆盖；共享链接会随源目录更新。安装兼容不代表已对所有厂商完成实测。
+默认安装到 `~/.codex/skills/pdf-translate`，已有安装不会被覆盖。Windows 使用 `install.ps1` 安装、Git Bash 运行排版脚本。当前会话需要持续处理译文队列，不是无人值守的一键翻译服务。
 
 ---
 
@@ -60,6 +58,6 @@ npx skills add yanxinwu946/pdf-translate
 - [DocLayout-YOLO](https://github.com/opendatalab/DocLayout-YOLO)
 - 原始技能 [L27z18328742/pdf-translate](https://github.com/L27z18328742/pdf-translate)
 
-在那份技能之上，登录额度、各家 agent 一次能装上。
+保留原来的排版能力，只让当前会话负责翻译。
 
 MIT License

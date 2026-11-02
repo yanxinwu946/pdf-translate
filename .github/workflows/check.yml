@@ -14,7 +14,7 @@ jobs:
           python-version: "3.12"
       - name: compile and selftest
         run: |
-          python -m py_compile scripts/cli_openai_proxy.py scripts/selftest.py
-          python scripts/selftest.py
+          python -m py_compile scripts/session.py scripts/file_translation.py
+          python -m unittest discover -s scripts -p 'test_*.py'
       - name: bash syntax
         run: bash -n install.sh scripts/setup.sh scripts/translate.sh
