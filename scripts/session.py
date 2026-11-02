@@ -1,6 +1,7 @@
 """Original layout engine, translated by the current session through local files."""
 
 import argparse
+from datetime import datetime, timezone
 import json
 import os
 import shutil
@@ -91,6 +92,19 @@ def main():
     if args.fresh:
         directory = directory / uuid.uuid4().hex
     directory.mkdir(parents=True, exist_ok=True)
+    state_path = directory / 'run-state.json'
+    state = {'state': 'starting', 'pid': os.getpid(),
+             'started_at': datetime.now(timezone.utc).isoformat(),
+             'input': str(args.input.resolve()), 'scope': args.pages or 'full',
+             'requested_outputs': [kind for kind, disabled in [('mono', args.no_mono), ('dual', args.no_dual)] if not disabled]}
+
+    def write_state():
+        temporary = state_path.with_suffix('.tmp')
+        temporary.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding='utf-8')
+        temporary.replace(state_path)
+
+    before = {str(p.resolve()): (p.stat().st_mtime_ns, p.stat().st_size) for p in output.glob('*.pdf')}
+    write_state()
     server = TranslationServer(directory, args.lang_out, args.wait_seconds)
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
@@ -113,11 +127,22 @@ def main():
     print(f"[session] queue: {directory}", flush=True)
     print("[session] Current chat must fill the queue while layout runs. No model process is launched.", flush=True)
     try:
-        return subprocess.call(command, env=environment)
+        state['state'] = 'running'
+        write_state()
+        result = subprocess.call(command, env=environment)
+        state.update(state='engine_succeeded' if result == 0 else 'engine_failed', engine_exit_code=result)
+        return result
+    except BaseException as error:
+        state.update(state='interrupted' if isinstance(error, KeyboardInterrupt) else 'failed', error=str(error))
+        raise
     finally:
         server.shutdown()
         server.server_close()
         worker.join()
+        state['finished_at'] = datetime.now(timezone.utc).isoformat()
+        state['new_or_modified_pdfs'] = [str(p.resolve()) for p in output.glob('*.pdf')
+                                       if before.get(str(p.resolve())) != (p.stat().st_mtime_ns, p.stat().st_size)]
+        write_state()
 
 
 if __name__ == "__main__":

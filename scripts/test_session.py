@@ -55,7 +55,28 @@ class SessionTests(unittest.TestCase):
             self.assertEqual(command[0], 'pdf2zh_next')
             self.assertIn('--ignore-cache', command)
             self.assertIn('current-session-v1', command)
+            self.assertNotIn('--pages', command)
             self.assertIn('127.0.0.1', launch.call_args.kwargs['env']['NO_PROXY'])
+            state = json.loads(next((Path(directory) / 'output').rglob('run-state.json')).read_text(encoding='utf-8'))
+            self.assertEqual(state['scope'], 'full')
+            self.assertEqual(state['state'], 'engine_succeeded')
+            # An engine exit alone must not invent deliverable PDFs.
+            self.assertEqual(state['new_or_modified_pdfs'], [])
+
+    def test_failed_partial_run_does_not_claim_old_pdf(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'paper.pdf'
+            source.touch()
+            output = Path(directory) / 'output'
+            output.mkdir()
+            (output / 'old-mono.pdf').write_bytes(b'old output')
+            with patch('sys.argv', ['session.py', str(source), '--pages', '1-2']), patch('session.shutil.which', return_value='pdf2zh_next'), patch('session.subprocess.call', return_value=1):
+                self.assertEqual(main(), 1)
+            state = json.loads((output / '.translation-job' / 'run-state.json').read_text(encoding='utf-8'))
+            self.assertEqual(state['scope'], '1-2')
+            self.assertEqual(state['state'], 'engine_failed')
+            self.assertEqual(state['engine_exit_code'], 1)
+            self.assertEqual(state['new_or_modified_pdfs'], [])
 
 
 if __name__ == '__main__':
