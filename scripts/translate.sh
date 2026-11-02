@@ -146,7 +146,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 start_cli_proxy() {
   local backend="$1"
   local default_model="$2"
-  local py_bin proxy gloss
+  local py_bin proxy
   local paths
   paths="$("$(pick_python)" - "$SCRIPT_DIR" "$INPUT" <<'PY'
 from pathlib import Path
@@ -164,19 +164,10 @@ py = Path(shutil.which("python") or shutil.which("python3") or sys.executable).r
 proxy = (script_dir / "cli_openai_proxy.py").resolve()
 print(py.as_posix())
 print(proxy.as_posix())
-cands = [
-    script_dir.parent / "glossaries" / "academic-en-zh.csv",
-    pdf.parent / "pdf-translate-glossary.csv",
-    pdf.with_suffix(".glossary.csv"),
-]
-for p in cands:
-    if p.is_file():
-        print(p.resolve().as_posix())
 PY
 )"
   py_bin="$(printf '%s\n' "$paths" | sed -n '1p')"
   proxy="$(printf '%s\n' "$paths" | sed -n '2p')"
-  gloss="$(printf '%s\n' "$paths" | sed -n '3,99p' | tr '\n' ',' | sed 's/,$//')"
   if [[ -z "$py_bin" || -z "$proxy" ]]; then
     echo "ERROR: could not resolve python / cli_openai_proxy.py" >&2
     exit 1
@@ -198,13 +189,12 @@ PY
   fi
   export NO_PROXY="localhost,127.0.0.1,::1${NO_PROXY:+,$NO_PROXY}"
   export no_proxy="$NO_PROXY"
-  export PDF_TRANSLATE_GLOSSARIES="$gloss"
   local port
   port="$("$py_bin" -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")"
   local proxy_log="${TMPDIR:-/tmp}/pdf-translate-cli-proxy-${port}.log"
   mkdir -p "$(dirname "$proxy_log")"
   : > "$proxy_log"
-  "$py_bin" -u "$proxy" --host 127.0.0.1 --port "$port" --backend "$backend" --model "$cli_model" --lang-out "$LANG_OUT" --glossary "$gloss" >>"$proxy_log" 2>&1 &
+  "$py_bin" -u "$proxy" --host 127.0.0.1 --port "$port" --backend "$backend" --model "$cli_model" --lang-out "$LANG_OUT" >>"$proxy_log" 2>&1 &
   PROXY_PID=$!
   cleanup_proxy() { kill "$PROXY_PID" 2>/dev/null || true; }
   trap cleanup_proxy EXIT
@@ -230,14 +220,6 @@ raise SystemExit(1)
   [[ -z "$POOL" ]] && CMD+=(--pool-max-workers 12)
   CMD+=(--openai --openai-base-url "http://127.0.0.1:${port}/v1" --openai-api-key "${backend}-cli" --openai-model "$cli_model" --openai-timeout "$((PDF_TRANSLATE_TIMEOUT * 4 + 30))")
   CMD+=(--no-auto-extract-glossary)
-  local skip_gloss=0
-  for a in "${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}"; do
-    [[ "$a" == --glossaries ]] && skip_gloss=1
-  done
-  if [[ "$skip_gloss" -eq 0 && -n "$gloss" ]]; then
-    CMD+=(--glossaries "$gloss")
-    echo "[translate] glossaries: $gloss"
-  fi
   echo "[translate] engine=$backend  model=$cli_model  (batched $backend CLI via local proxy)"
 }
 

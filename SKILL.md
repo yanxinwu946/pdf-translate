@@ -49,13 +49,9 @@ If the user says to use a specific vendor or billed API, honor that. Otherwise s
 - `--qps N --pool-max-workers N`
 - `--no-dual` / `--no-mono`
 - `--fresh` — ignore pdf2zh translation cache
-- `-- --ignore-cache` / `-- --glossaries other.csv` — passthrough to `pdf2zh_next`
+- `-- --ignore-cache` — passthrough to `pdf2zh_next`
 
-After changing the proxy or a glossary, pass `--fresh`.
-
-### Glossary
-
-Auto-loads `$SKILL_DIR/glossaries/academic-en-zh.csv` plus `<pdf-dir>/pdf-translate-glossary.csv` or `<pdf>.glossary.csv`. CSV columns: `source,target,tgt_lng`. Automatic term extraction is off on CLI engines so it does not starve the batcher.
+After changing the proxy, pass `--fresh`.
 
 ### How to run it
 

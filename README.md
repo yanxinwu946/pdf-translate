@@ -45,7 +45,6 @@ npx skills add yanxinwu946/pdf-translate
 
 - **中文版** `*-mono.pdf`
 - **中英对照** `*-dual.pdf`
-- 论文旁放一份 `pdf-translate-glossary.csv`，专名就会按你的写法走
 
 默认英语 → 简体中文，也可以换成其他语言。
 
@@ -61,6 +60,6 @@ npx skills add yanxinwu946/pdf-translate
 - [DocLayout-YOLO](https://github.com/opendatalab/DocLayout-YOLO)
 - 原始技能 [L27z18328742/pdf-translate](https://github.com/L27z18328742/pdf-translate)
 
-在那份技能之上，登录额度、术语表、各家 agent 一次能装上。
+在那份技能之上，登录额度、各家 agent 一次能装上。
 
 MIT License

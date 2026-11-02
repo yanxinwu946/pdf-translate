@@ -8,7 +8,6 @@ the user's existing login, not a separately billed HTTP API.
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import os
 import queue
@@ -30,10 +29,6 @@ PLACEHOLDER_RE = re.compile(
     re.I,
 )
 CJK = r"\u4e00-\u9fff"
-LATIN_PERSON = re.compile(r"^[A-Z][a-z]+(?:[ -][A-Z][a-z]+)+$")
-CJK_PERSON = re.compile(rf"^[{CJK}]{{2,4}}$")
-ORG_MARKERS = ("大学", "学院", "研究所", "研究院", "实验室", "University", "Institute")
-
 GROK_DISALLOWED = ",".join(
     [
         "Agent",
@@ -96,53 +91,9 @@ def _space_chunk(s: str) -> str:
     return s
 
 
-def load_glossary_fixes(paths: list[str]) -> list[tuple[str, str]]:
-    fixes: list[tuple[str, str]] = [
-        ("etal.", "et al."),
-        ("et al.", "et al."),
-    ]
-    people_cjk: list[str] = []
-    orgs: list[str] = []
-    seen: set[tuple[str, str]] = set(fixes)
-    for raw in paths:
-        path = Path(raw.strip())
-        if not path.is_file():
-            continue
-        with path.open(encoding="utf-8-sig", newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                source = (row.get("source") or "").strip()
-                target = (row.get("target") or source).strip()
-                if not source:
-                    continue
-                if LATIN_PERSON.match(source) or LATIN_PERSON.match(target):
-                    compact = re.sub(r"[\s-]+", "", source)
-                    pair = (compact, source if " " in source else target)
-                    if pair[0] != pair[1] and pair not in seen:
-                        fixes.append(pair)
-                        seen.add(pair)
-                if CJK_PERSON.match(target):
-                    people_cjk.append(target)
-                if any(m in target for m in ORG_MARKERS):
-                    orgs.append(target)
-    for person in people_cjk:
-        for org in orgs:
-            glued, spaced = person + org, f"{person} {org}"
-            if (glued, spaced) not in seen:
-                fixes.append((glued, spaced))
-                seen.add((glued, spaced))
-    fixes.sort(key=lambda x: len(x[0]), reverse=True)
-    return fixes
-
-
 class Polisher:
-    def __init__(self, glossary_paths: list[str]):
-        self.fixes = load_glossary_fixes(glossary_paths)
-
     def text(self, text: str) -> str:
         s = cjk_latin_space(text)
-        for src, dst in self.fixes:
-            s = s.replace(src, dst)
         return s
 
     def il_json(self, raw: str) -> str:
@@ -163,7 +114,7 @@ class Polisher:
         return raw.strip()
 
 
-POLISHER = Polisher([])
+POLISHER = Polisher()
 
 
 def classify(content: str) -> tuple[str, str]:
@@ -776,11 +727,6 @@ def main() -> int:
         "--lang-out", default=os.environ.get("PDF_TRANSLATE_LANG_OUT", "zh-CN")
     )
     ap.add_argument(
-        "--glossary",
-        default=os.environ.get("PDF_TRANSLATE_GLOSSARIES", ""),
-        help="comma-separated glossary CSV paths",
-    )
-    ap.add_argument(
         "--batch-size",
         type=int,
         default=int(os.environ.get("PDF_TRANSLATE_BATCH_SIZE", "12")),
@@ -811,7 +757,6 @@ def main() -> int:
     if args.port <= 0:
         args.port = 0
 
-    POLISHER = Polisher(_split_csv(args.glossary))
     STATE.model = args.model
     STATE.backend = args.backend
     STATE.batcher = Batcher(

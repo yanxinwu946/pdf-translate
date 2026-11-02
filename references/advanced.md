@@ -18,7 +18,7 @@ Set `PDF_TRANSLATE_CLI_PROXY=http://127.0.0.1:7897` when a local network proxy i
 
 Env: `PDF_TRANSLATE_ENGINE`, `PDF_TRANSLATE_MODEL`, `PDF_TRANSLATE_EFFORT`, `PDF_TRANSLATE_TIMEOUT`, `PDF_TRANSLATE_BATCH_SIZE`, `PDF_TRANSLATE_BATCH_WAIT`, `PDF_TRANSLATE_BATCH_PARALLEL`.
 
-After changing the proxy or a glossary, pass `--fresh` (or `-- --ignore-cache`). Cache file: `~/.cache/pdf2zh_next/cache.v1.db`.
+After changing the proxy, pass `--fresh` (or `-- --ignore-cache`). Cache file: `~/.cache/pdf2zh_next/cache.v1.db`.
 
 ### claudecode
 
@@ -44,16 +44,6 @@ Default `en` → `zh-CN`. Common codes: `zh-TW`, `ja`, `ko`, `fr`, `de`, `es`, `
 
 Full list: https://pdf2zh-next.com/advanced/Language-Codes.html
 
-## Glossaries
-
-CSV columns `source,target,tgt_lng`. Auto-loaded:
-
-1. `$SKILL_DIR/glossaries/academic-en-zh.csv`
-2. `<pdf-dir>/pdf-translate-glossary.csv`
-3. `<pdf>.glossary.csv`
-
-The proxy uses the same CSV to split glued names (`YangXiang` → `Yang Xiang`, `姓名`+`大学`). Put paper-specific names in the PDF-side CSV, not in the skill.
-
 ## Speed
 
 CLI engines: start at `--qps 8 --pool-max-workers 12`. OpenAI HTTP: `--qps 10 --pool-max-workers 30`. Back off on 429s.
@@ -74,5 +64,5 @@ Official rule of thumb: RPM-limited `qps = floor(rpm/60)`, `pool = qps * 10`.
 - 429 — lower `--qps` and `--pool-max-workers`.
 - OpenAI 404/400 — gateway may lack `/chat/completions`.
 - Nested `grok -p` inside Grok — the proxy already sets a unique `--leader-socket`.
-- Stale wording after a proxy/glossary change — `--fresh`.
+- Stale wording after a proxy change — `--fresh`.
 - Windows — Git Bash for `.sh` scripts.
